@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מתמטיקה בשביל כיפון ⚽</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== FEEDBACK OVERLAY ===== -->
+<div class="feedback-overlay" id="feedbackOverlay">
+  <div class="feedback-word" id="feedbackWord"></div>
+  <div class="feedback-sub"  id="feedbackSub"></div>
+</div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<!-- ============================= SCREEN: WELCOME ============================= -->
+<div class="screen active" id="screen-welcome">
+  <div class="card" style="margin-top:24px">
+    <div class="logo-row">
+      <span style="font-size:2.8rem">⚽</span>
+      <h1>כדורגל מתמטי!</h1>
+      <span style="font-size:2.8rem">🥅</span>
+    </div>
+    <p class="subtitle">משחק חשבון לכיתות ה'–ו' · עשה גולים, שבר שיאים!</p>
+
+    <div class="form-group">
+      <label for="playerNameInput">👤 מה שמך?</label>
+      <input type="text" id="playerNameInput" placeholder="הכנס שם שחקן..." maxlength="20" autocomplete="off" />
+    </div>
+
+    <div class="welcome-btns">
+      <button class="btn btn-gold" onclick="goToGrade()">🚀 שחק עכשיו!</button>
+      <button class="btn btn-green" onclick="showHighScores('welcome')">🏆 שיאים</button>
+    </div>
+
+    <div class="scoring-legend mt-16">
+      <div class="scoring-legend-title">📊 חישוב ניקוד</div>
+      <div class="scoring-legend-rows">
+        <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 25+ שניות</span><span class="sl-val">+5</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 18+ שניות</span><span class="sl-val">+3</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 10+ שניות</span><span class="sl-val">+1</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום לשאלה</span><span class="sl-val">15</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום סה"כ (10 שאלות)</span><span class="sl-val">150</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: GRADE — commented out, only grade 5 for now
+<div class="screen" id="screen-grade">
+  <button class="nav-back" onclick="showScreen('welcome')">← חזרה</button>
+  <div class="card">
+    <h2>בחר כיתה 📚</h2>
+    <p class="grade-desc mt-8 mb-16">בחר את הכיתה שלך לשאלות המתאימות</p>
+    <button class="btn btn-gold btn-grade" onclick="startGame(5)">
+      ⭐ כיתה ה'
+      <span class="grade-topics"><br/>שברים · אחוזים · שטח · עשרוניים</span>
+    </button>
+    <button class="btn btn-green btn-grade" onclick="startGame(6)">
+      🔥 כיתה ו'
+      <span class="grade-topics"><br/>שברים מורכבים · יחסים · משוואות · עיגול</span>
+    </button>
+  </div>
+</div>
+-->
+
+<!-- ============================= SCREEN: GAME ============================= -->
+<div class="screen" id="screen-game">
+  <div class="top-bar" id="topBar">
+    <div class="top-bar-item">
+      <span class="top-bar-label">שחקן</span>
+      <span class="top-bar-value" id="tbPlayer">—</span>
+    </div>
+    <div class="top-bar-item">
+      <span class="top-bar-label">ניקוד</span>
+      <span class="top-bar-value" id="tbScore">0</span>
+    </div>
+    <div class="top-bar-item">
+      <div class="timer-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="timer-ring-bg" cx="26" cy="26" r="22"/>
+          <circle class="timer-ring-fg" id="timerRing" cx="26" cy="26" r="22"/>
+        </svg>
+        <div class="timer-text" id="timerText">30</div>
+      </div>
+    </div>
+    <div class="top-bar-item">
+      <span class="top-bar-label">שאלה</span>
+      <span class="top-bar-value" id="tbQuestion">1/10</span>
+    </div>
+  </div>
+
+  <!-- Progress dots -->
+  <div class="progress-row" id="progressRow"></div>
+
+  <div class="question-wrap card" id="questionCard">
+    <div style="text-align:center; margin-bottom:8px">
+      <span class="question-type-badge" id="qTypeBadge">בעיטה לשער</span>
+    </div>
+    <div class="question-text" id="questionText">…</div>
+
+    <!-- GOAL KICK section -->
+    <div id="goalKickSection">
+      <div class="goal-arena">
+        <div class="goal-crossbar"></div>
+        <div class="goal-post" id="goalPost">
+          <div class="goal-zone" id="zone-tl" data-zone="tl" onclick="kickZone('tl')"></div>
+          <div class="goal-zone" id="zone-tr" data-zone="tr" onclick="kickZone('tr')"></div>
+          <div class="goal-zone" id="zone-bl" data-zone="bl" onclick="kickZone('bl')"></div>
+          <div class="goal-zone" id="zone-br" data-zone="br" onclick="kickZone('br')"></div>
+        </div>
+        <div class="goal-ground"></div>
+      </div>
+      <div class="ball-row">
+        <span class="ball" id="ball">⚽</span>
+      </div>
+      <p class="mt-8 text-center" style="font-size:0.85rem;color:rgba(255,255,255,0.55)">לחץ על אזור השער כדי לבעוט!</p>
+    </div>
+
+    <!-- OPEN ANSWER section -->
+    <div id="openAnswerSection" style="display:none">
+      <div class="open-answer-wrap">
+        <input type="number" id="openAnswerInput" placeholder="?" autocomplete="off" />
+        <button class="btn btn-gold" onclick="submitOpenAnswer()">✓ שלח</button>
+      </div>
+      <p class="mt-8 text-center" style="font-size:0.85rem;color:rgba(255,255,255,0.55)">הקלד את התשובה ולחץ שלח</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SCREEN: END ============================= -->
+<div class="screen" id="screen-end">
+  <div class="card" style="margin-top:20px;text-align:center">
+    <span class="emoji-big" id="endEmoji">🏆</span>
+    <h2 id="endTitle" class="mt-8">סיום מחזור!</h2>
+    <div class="score-big mt-8" id="endScore">0</div>
+    <p class="mt-4" style="color:rgba(255,255,255,0.7)">נקודות</p>
+
+    <div class="score-breakdown mt-16" id="scoreBreakdown"></div>
+
+    <div id="newRecordBanner" style="display:none;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#1a1a00;border-radius:10px;padding:12px;font-weight:900;font-size:1.15rem;margin-bottom:16px">
+      🎉 שיא חדש! ברכות! 🎉
+    </div>
+
+    <div class="row-btns mt-8">
+      <button class="btn btn-gold" onclick="goToGrade()">⚽ משחק חדש</button>
+      <button class="btn btn-green" onclick="showHighScores('end')">🏆 טבלת שיאים</button>
+      <button class="btn btn-red"   onclick="showScreen('welcome')">🏠 בית</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SCREEN: HIGH SCORES ============================= -->
+<div class="screen" id="screen-highscores">
+  <button class="nav-back" id="highScoresBack" onclick="backFromHighScores()">← חזרה</button>
+  <div class="card" style="width:100%;max-width:680px">
+    <h2>🏆 טבלת שיאים</h2>
+    <div class="mt-16" id="highScoresContent"></div>
+
+    <div class="scoring-legend mt-16">
+      <div class="scoring-legend-title">📊 חישוב ניקוד</div>
+      <div class="scoring-legend-rows">
+        <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 25+ שניות</span><span class="sl-val">+5</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 18+ שניות</span><span class="sl-val">+3</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 10+ שניות</span><span class="sl-val">+1</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום לשאלה</span><span class="sl-val">15</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום סה"כ (10 שאלות)</span><span class="sl-val">150</span></div>
+      </div>
+    </div>
+
+    <div class="row-btns mt-20">
+      <button class="btn btn-gold" onclick="goToGrade()">⚽ שחק!</button>
+      <button class="btn btn-red" onclick="clearScores()">🗑️ נקה הכל</button>
+    </div>
+  </div>
+</div>
+
+<!-- questions.js must load before app.js -->
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
