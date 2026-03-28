@@ -2,19 +2,20 @@
 //  GAME STATE
 // ============================================================
 let state = {
-  playerName: '',
-  grade: 5,
-  questions: [],
-  currentQ: 0,
-  score: 0,
-  correctCount: 0,
-  wrongCount: 0,
-  bonusTotal: 0,
-  timeLeft: 30,
-  timerInterval: null,
-  results: [],        // 'correct' | 'wrong' per question
-  answered: false,
-  prevScreen: 'welcome',
+  playerName:     '',
+  grade:          5,
+  questions:      [],
+  currentQ:       0,
+  score:          0,
+  correctCount:   0,
+  wrongCount:     0,
+  bonusTotal:     0,
+  timeLeft:       30,
+  timerInterval:  null,
+  results:        [],   // 'correct' | 'wrong' per question
+  answered:       false,
+  prevScreen:     'welcome',
+  highScoreMode:  'soccer', // 'soccer' | 'racing'
 };
 
 const TIMER_MAX = 30;
@@ -28,18 +29,48 @@ function showScreen(id) {
   document.getElementById('screen-' + id).classList.add('active');
 }
 
-function goToGrade() {
+let selectedMode = 'soccer'; // toggled on the welcome screen
+
+function setModeToggle(mode) {
+  selectedMode = mode;
+  const isSoccer = mode === 'soccer';
+
+  document.getElementById('toggleSoccer').classList.toggle('active', isSoccer);
+  document.getElementById('toggleRacing').classList.toggle('active', !isSoccer);
+
+  document.getElementById('welcomeEmoji').textContent  = isSoccer ? '⚽' : '🏎️';
+  document.getElementById('welcomeEmoji2').textContent = isSoccer ? '🥅' : '🏁';
+  document.getElementById('welcomeTitle').textContent  = isSoccer ? 'כדורגל מתמטי!' : 'מירוץ מתמטי!';
+  document.getElementById('welcomeSubtitle').textContent = isSoccer
+    ? 'משחק חשבון לכיתות ה\'–ו\' · עשה גולים, שבר שיאים!'
+    : 'חשבון בתנועה · החלף נתיב לתשובה הנכונה!';
+
+  document.getElementById('legendSoccer').style.display = isSoccer ? '' : 'none';
+  document.getElementById('legendRacing').style.display = isSoccer ? 'none' : '';
+
+  document.getElementById('playNowBtn').className = isSoccer ? 'btn btn-gold' : 'btn btn-race';
+}
+
+function playNow() {
   const nameInput = document.getElementById('playerNameInput');
   const name = nameInput ? nameInput.value.trim() : state.playerName;
   if (!name) {
-    showScreen('welcome');
     document.getElementById('playerNameInput').focus();
     shakeEl(document.getElementById('playerNameInput'));
     return;
   }
   state.playerName = name;
-  startGame(5); // only grade 5 for now
+  if (selectedMode === 'racing') {
+    startRacingGame();
+  } else {
+    startGame(5);
+  }
 }
+
+// Aliases kept for buttons that call these by name
+function goToModeSelect() { playNow(); }
+function goToGrade()       { playNow(); }
+function selectMode(mode)  { selectedMode = mode; playNow(); }
 
 function shakeEl(el) {
   el.style.animation = 'none';
@@ -50,13 +81,20 @@ function shakeEl(el) {
 }
 
 function showHighScores(from) {
-  state.prevScreen = from;
+  state.prevScreen    = from;
+  state.highScoreMode = 'soccer';
   renderHighScores();
   showScreen('highscores');
 }
 
 function backFromHighScores() {
   showScreen(state.prevScreen);
+}
+
+function quitSoccerGame() {
+  if (!confirm('לצאת מהמשחק ולחזור לתפריט?')) return;
+  stopTimer();
+  showScreen('welcome');
 }
 
 // ============================================================
@@ -474,6 +512,15 @@ function saveScore() {
 function renderHighScores() {
   const scores    = getScores();
   const container = document.getElementById('highScoresContent');
+
+  // Reset to soccer-mode header / buttons / legend
+  document.getElementById('hsTitle').textContent       = '⚽ שיאי כדורגל';
+  document.getElementById('hsPlayBtn').textContent     = '⚽ שחק כדורגל!';
+  document.getElementById('hsPlayBtn').onclick         = () => startGame(5);
+  document.getElementById('hsClearBtn').onclick        = clearScores;
+  document.getElementById('hsSoccerLegend').style.display = '';
+  document.getElementById('hsRacingLegend').style.display = 'none';
+
   if (scores.length === 0) {
     container.innerHTML = '<div class="no-scores">עדיין אין שיאים. שחק ובנה שיא! ⚽</div>';
     return;
@@ -517,5 +564,5 @@ document.getElementById('openAnswerInput').addEventListener('keydown', e => {
 });
 
 document.getElementById('playerNameInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') goToGrade();
+  if (e.key === 'Enter') playNow();
 });
