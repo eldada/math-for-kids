@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>מתמטיקה בשביל כיפון ⚽</title>
+  <title>מתמטיקה בשביל כיפון ⚽🏎️</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -20,11 +20,17 @@
 <div class="screen active" id="screen-welcome">
   <div class="card" style="margin-top:24px">
     <div class="logo-row">
-      <span style="font-size:2.8rem">⚽</span>
-      <h1>כדורגל מתמטי!</h1>
-      <span style="font-size:2.8rem">🥅</span>
+      <span id="welcomeEmoji" style="font-size:2.8rem">⚽</span>
+      <h1 id="welcomeTitle">כדורגל מתמטי!</h1>
+      <span id="welcomeEmoji2" style="font-size:2.8rem">🥅</span>
     </div>
-    <p class="subtitle">משחק חשבון לכיתות ה'–ו' · עשה גולים, שבר שיאים!</p>
+    <p class="subtitle" id="welcomeSubtitle">משחק חשבון לכיתות ה'–ו' · עשה גולים, שבר שיאים!</p>
+
+    <!-- Game mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-toggle-btn active" id="toggleSoccer" onclick="setModeToggle('soccer')">⚽ כדורגל</button>
+      <button class="mode-toggle-btn"        id="toggleRacing" onclick="setModeToggle('racing')">🏎️ מירוץ</button>
+    </div>
 
     <div class="form-group">
       <label for="playerNameInput">👤 מה שמך?</label>
@@ -32,12 +38,13 @@
     </div>
 
     <div class="welcome-btns">
-      <button class="btn btn-gold" onclick="goToGrade()">🚀 שחק עכשיו!</button>
+      <button class="btn btn-gold" id="playNowBtn" onclick="playNow()">🚀 שחק עכשיו!</button>
       <button class="btn btn-green" onclick="showHighScores('welcome')">🏆 שיאים</button>
     </div>
 
-    <div class="scoring-legend mt-16">
-      <div class="scoring-legend-title">📊 חישוב ניקוד</div>
+    <!-- Soccer scoring legend -->
+    <div id="legendSoccer" class="scoring-legend mt-16">
+      <div class="scoring-legend-title">📊 חישוב ניקוד — כדורגל</div>
       <div class="scoring-legend-rows">
         <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
         <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 25+ שניות</span><span class="sl-val">+5</span></div>
@@ -46,6 +53,69 @@
         <div class="sl-row sl-max"><span class="sl-label">מקסימום לשאלה</span><span class="sl-val">15</span></div>
         <div class="sl-row sl-max"><span class="sl-label">מקסימום סה"כ (10 שאלות)</span><span class="sl-val">150</span></div>
       </div>
+    </div>
+
+    <!-- Racing scoring legend -->
+    <div id="legendRacing" class="scoring-legend mt-16" style="display:none">
+      <div class="scoring-legend-title">📊 חישוב ניקוד — מירוץ</div>
+      <div class="scoring-legend-rows">
+        <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">🚀 החלפת נתיב לפני 40% מהמסלול</span><span class="sl-val">+5</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום לשאלה</span><span class="sl-val">15</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום סה"כ (10 שאלות)</span><span class="sl-val">150</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= SCREEN: RACING ============================= -->
+<div class="screen" id="screen-racing">
+  <div id="racing-hud" class="racing-hud">
+    <div class="racing-hud-item">
+      <div class="racing-hud-label">שחקן</div>
+      <div class="racing-hud-value" id="r-player">—</div>
+    </div>
+    <div class="racing-hud-center">
+      <div class="racing-question" id="r-question">?</div>
+    </div>
+    <div class="racing-hud-item">
+      <div class="racing-hud-label">ניקוד</div>
+      <div class="racing-hud-value" id="r-score">0</div>
+    </div>
+    <div class="racing-hud-item">
+      <div class="racing-hud-label">שאלה</div>
+      <div class="racing-hud-value" id="r-qnum">1/10</div>
+    </div>
+    <button class="racing-quit-btn" onclick="quitRacingGame()" title="יציאה">✕</button>
+  </div>
+  <canvas id="racingCanvas" style="display:block;"></canvas>
+  <div id="racing-controls" class="racing-controls">
+    <button class="racing-btn" id="btn-left"
+      ontouchstart="racingMoveLeft()" onclick="racingMoveLeft()">◀</button>
+    <div class="racing-hint">← → מקשי חץ להחלפת נתיב</div>
+    <button class="racing-btn" id="btn-right"
+      ontouchstart="racingMoveRight()" onclick="racingMoveRight()">▶</button>
+  </div>
+</div>
+
+<!-- ============================= SCREEN: RACING END ============================= -->
+<div class="screen" id="screen-racing-end">
+  <div class="card" style="margin-top:20px;text-align:center">
+    <span class="emoji-big" id="r-endEmoji">🏎️</span>
+    <h2 id="r-endTitle" class="mt-8">סיום מירוץ!</h2>
+    <div class="score-big mt-8" id="r-endScore">0</div>
+    <p class="mt-4" style="color:rgba(255,255,255,0.7)">נקודות</p>
+
+    <div class="score-breakdown mt-16" id="r-scoreBreakdown"></div>
+
+    <div id="r-newRecordBanner" style="display:none;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#1a1a00;border-radius:10px;padding:12px;font-weight:900;font-size:1.15rem;margin-bottom:16px">
+      🎉 שיא חדש! ברכות! 🎉
+    </div>
+
+    <div class="row-btns mt-8">
+      <button class="btn btn-race" onclick="startRacingGame()">🏎️ מירוץ חדש!</button>
+      <button class="btn btn-green" onclick="showRacingHighScores('racing-end')">🏆 שיאים</button>
+      <button class="btn btn-red"   onclick="showScreen('welcome')">🏠 בית</button>
     </div>
   </div>
 </div>
@@ -70,6 +140,7 @@
 
 <!-- ============================= SCREEN: GAME ============================= -->
 <div class="screen" id="screen-game">
+  <button class="quit-btn" onclick="quitSoccerGame()">✕ יציאה</button>
   <div class="top-bar" id="topBar">
     <div class="top-bar-item">
       <span class="top-bar-label">שחקן</span>
@@ -147,7 +218,7 @@
     </div>
 
     <div class="row-btns mt-8">
-      <button class="btn btn-gold" onclick="goToGrade()">⚽ משחק חדש</button>
+      <button class="btn btn-gold" onclick="startGame(5)">⚽ כדורגל חדש</button>
       <button class="btn btn-green" onclick="showHighScores('end')">🏆 טבלת שיאים</button>
       <button class="btn btn-red"   onclick="showScreen('welcome')">🏠 בית</button>
     </div>
@@ -158,11 +229,12 @@
 <div class="screen" id="screen-highscores">
   <button class="nav-back" id="highScoresBack" onclick="backFromHighScores()">← חזרה</button>
   <div class="card" style="width:100%;max-width:680px">
-    <h2>🏆 טבלת שיאים</h2>
+    <h2 id="hsTitle">🏆 טבלת שיאים</h2>
     <div class="mt-16" id="highScoresContent"></div>
 
-    <div class="scoring-legend mt-16">
-      <div class="scoring-legend-title">📊 חישוב ניקוד</div>
+    <!-- Soccer scoring legend -->
+    <div id="hsSoccerLegend" class="scoring-legend mt-16">
+      <div class="scoring-legend-title">📊 חישוב ניקוד — כדורגל</div>
       <div class="scoring-legend-rows">
         <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
         <div class="sl-row sl-bonus"><span class="sl-label">⚡ בונוס מהירות — נותרו 25+ שניות</span><span class="sl-val">+5</span></div>
@@ -173,9 +245,20 @@
       </div>
     </div>
 
+    <!-- Racing scoring legend -->
+    <div id="hsRacingLegend" class="scoring-legend mt-16" style="display:none">
+      <div class="scoring-legend-title">📊 חישוב ניקוד — מירוץ</div>
+      <div class="scoring-legend-rows">
+        <div class="sl-row"><span class="sl-label">תשובה נכונה</span><span class="sl-val">+10</span></div>
+        <div class="sl-row sl-bonus"><span class="sl-label">🚀 בונוס מוקדם — החלפת נתיב לפני 40%</span><span class="sl-val">+5</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום לשאלה</span><span class="sl-val">15</span></div>
+        <div class="sl-row sl-max"><span class="sl-label">מקסימום סה"כ (10 שאלות)</span><span class="sl-val">150</span></div>
+      </div>
+    </div>
+
     <div class="row-btns mt-20">
-      <button class="btn btn-gold" onclick="goToGrade()">⚽ שחק!</button>
-      <button class="btn btn-red" onclick="clearScores()">🗑️ נקה הכל</button>
+      <button class="btn btn-gold" id="hsPlayBtn" onclick="goToModeSelect()">🎮 שחק!</button>
+      <button class="btn btn-red"  id="hsClearBtn" onclick="clearScores()">🗑️ נקה הכל</button>
     </div>
   </div>
 </div>
@@ -183,5 +266,6 @@
 <!-- questions.js must load before app.js -->
 <script src="questions.js"></script>
 <script src="app.js"></script>
+<script src="racing.js"></script>
 </body>
 </html>
